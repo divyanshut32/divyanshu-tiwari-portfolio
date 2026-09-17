@@ -1,0 +1,22 @@
+{
+  "name": "divyanshu-tiwari-portfolio",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Divyanshu Tiwari full-stack portfolio with contact email, WhatsApp, theme toggle and admin inbox.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "nodemailer": "^7.0.6"
+  }
+}

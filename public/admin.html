@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Divyanshu Tiwari | Admin Inbox</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+.admin{max-width:1100px;margin:0 auto;padding:125px 6% 70px}.admin h1{font-size:clamp(2.5rem,6vw,5rem);margin:15px 0 30px}
+.panel{background:var(--surface);border:1px solid var(--line);padding:25px;margin-top:25px}.login{max-width:430px}.admin label{display:block;color:var(--muted);font-size:.75rem;margin:15px 0 7px}.admin input{width:100%;padding:13px;background:var(--bg);border:1px solid var(--line);color:var(--text);border-radius:5px}.msg{border-top:1px solid var(--line);padding:22px 0}.msg:first-child{border-top:0}.msg-head{display:flex;justify-content:space-between;gap:20px}.msg h3{font-size:1.05rem}.msg small,.msg p{color:var(--muted);font-size:.78rem}.msg p{white-space:pre-wrap;margin-top:10px}.msg-actions{margin-top:15px;display:flex;gap:8px}.msg-actions button{padding:7px 11px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;border-radius:999px;font-size:.7rem}.danger{color:#ff8d8d!important}.hidden{display:none}.admin-top{display:flex;justify-content:space-between;align-items:center}.badge{font-size:.65rem;color:var(--lime);border:1px solid var(--line);padding:5px 9px;border-radius:999px}
+</style></head>
+<body>
+<header class="site-header"><a class="brand" href="/">A<span>.</span></a><a class="nav-resume" href="/">← Portfolio</a></header>
+<main class="admin">
+<p class="eyebrow">PRIVATE AREA</p><h1>Message <span>Inbox.</span></h1>
+<section id="loginPanel" class="panel login">
+<h3>Admin login</h3>
+<form id="loginForm"><label>Username<input name="username" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button class="button button-primary" type="submit">Login ↗</button><p id="loginStatus" class="form-status"></p></form>
+</section>
+<section id="inboxPanel" class="panel hidden">
+<div class="admin-top"><h2>Portfolio enquiries</h2><span id="count" class="badge">0 messages</span></div>
+<div id="messages"></div>
+</section>
+</main>
+<script>
+let token=localStorage.getItem("aryan-admin-token");
+const loginPanel=document.getElementById("loginPanel"), inbox=document.getElementById("inboxPanel"), messages=document.getElementById("messages"), count=document.getElementById("count");
+async function loadMessages(){const r=await fetch("/api/admin/messages",{headers:{Authorization:"Bearer "+token}});if(!r.ok){localStorage.removeItem("aryan-admin-token");location.reload();return}const d=await r.json();count.textContent=d.messages.length+" message"+(d.messages.length===1?"":"s");messages.innerHTML=d.messages.length?d.messages.map(m=>`<article class="msg"><div class="msg-head"><div><h3>${esc(m.subject||"No subject")}</h3><small>${esc(m.name)} · ${esc(m.email)}</small></div><small>${new Date(m.created_at+"Z").toLocaleString()}</small></div><p>${esc(m.message)}</p><div class="msg-actions"><button onclick="readMsg(${m.id})">${m.read?"Read":"Mark read"}</button><button class="danger" onclick="deleteMsg(${m.id})">Delete</button><a class="button" style="padding:7px 12px" href="mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent("Re: "+(m.subject||"Your enquiry"))}">Reply ↗</a></div></article>`).join(""):"<p style='color:var(--muted);padding:30px 0'>No messages yet.</p>"}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+async function readMsg(id){await fetch("/api/admin/messages/"+id+"/read",{method:"PATCH",headers:{Authorization:"Bearer "+token}});loadMessages()}
+async function deleteMsg(id){if(!confirm("Delete this message?"))return;await fetch("/api/admin/messages/"+id,{method:"DELETE",headers:{Authorization:"Bearer "+token}});loadMessages()}
+document.getElementById("loginForm").addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.target);const r=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.fromEntries(f))});const d=await r.json();if(d.ok){token=d.token;localStorage.setItem("aryan-admin-token",token);loginPanel.classList.add("hidden");inbox.classList.remove("hidden");loadMessages()}else document.getElementById("loginStatus").textContent=d.message});
+if(token){loginPanel.classList.add("hidden");inbox.classList.remove("hidden");loadMessages()}
+</script></body></html>
